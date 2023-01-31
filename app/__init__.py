@@ -28,8 +28,8 @@ def token_required(func=None):
         if not token :
             return make_response(
                 jsonify(
-                    {'msg':'token tidak ada !'},404
-                )
+                    {'msg':'token tidak ada !'}
+                ),404
             )
         else:
             try:

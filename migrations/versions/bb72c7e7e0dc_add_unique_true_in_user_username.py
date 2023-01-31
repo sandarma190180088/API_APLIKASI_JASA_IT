@@ -1,8 +1,8 @@
-"""membuat func di table user
+"""add unique=true in User.username
 
-Revision ID: b99b8513827f
+Revision ID: bb72c7e7e0dc
 Revises: 
-Create Date: 2023-01-30 06:01:53.269220
+Create Date: 2023-01-31 12:00:36.201027
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'b99b8513827f'
+revision = 'bb72c7e7e0dc'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -39,8 +39,9 @@ def upgrade():
     sa.Column('username', sa.String(), nullable=False),
     sa.Column('password', sa.String(), nullable=False),
     sa.Column('role', sa.String(), nullable=False),
-    sa.Column('data', sa.String(), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.Column('data', sa.Text(), nullable=True),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('username')
     )
     # ### end Alembic commands ###
 

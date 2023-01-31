@@ -12,9 +12,10 @@ from app import (
     user_schema,
     json,
     db,
-    api
+    api,
+    make_response,jsonify
 )
-
+import datetime
 
 
 
@@ -36,6 +37,7 @@ class Login(Resource):
 
                     )
                     session['token']= token
+                    session['username'] = u.username
                     return {"msg":"berhasil Login",'token':token},200
                 else:
                     return {'msg':'password anda salah ! '},404
@@ -45,7 +47,6 @@ class Login(Resource):
                 return {'msg':'username anda tidak ditemukan'},404
         else:
             return {'msg':'gagal Login'},400
-        
 
 
 
@@ -69,16 +70,23 @@ class User_(Resource):
             return {'msg':f'{e}','status':False},404
     def delete(self):
         id = request.args['id']
+        u = User.get_by_id(id)
+        username = session.get('username')
         if id :
             try:
                 u = User.get_by_id(id)
                 u.delete()
-                return {'msg':'succes deleted !'},200
+                if u.username == username:
+                    session.clear()
+                return {'msg':'succes deleted !','u':username},200
 
             except Exception as e:
                 return {'msg':'id anda tidak ditemukan !'},404
         else:
             return {'msg':'isi id anda'},400
+
+
+
 class UserData(Resource):
     def get(self,id):
         q = User.get_data(id)
@@ -102,8 +110,14 @@ class UserData(Resource):
             return {'msg':'success !'},200
         except Exception as e:
             return {'msg':str(e)},400
+@app.route('/api/logout')
+def logout():
+    session.clear()
+    return make_response(jsonify({
+        'msg':'anda sudah keluar'
+    }),200)
 
-
+# API Route
 api.add_resource(Login,'/api/login') 
 api.add_resource(User_,'/api/user')
 api.add_resource(UserData,'/api/user/data/<id>')

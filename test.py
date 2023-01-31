@@ -1,11 +1,6 @@
-import json
-a = {
-    "nama":"sandy"
-}
+data = {}
+
+if 's' in data:
 
 
-
-li = []
-
-li.append(a)
-print(li)
+    print(1)
