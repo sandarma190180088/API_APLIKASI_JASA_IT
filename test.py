@@ -1,6 +1,10 @@
-data = {}
+data = {"kode_produk":"123",
+    "data":{
+        'nama':'saya'}}
+data2 = {'nama':'saya'}
 
-if 's' in data:
+if data2['nama'] in data['data']['nama']:
+    print('benar')
+else:
+    print('salah')
 
-
-    print(1)

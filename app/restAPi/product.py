@@ -3,7 +3,7 @@ from app import (
     api,
     request,
     token_required,
-    product_schema,products_schema,
+    
     json,
     db,session,
     Resource,User
@@ -13,12 +13,13 @@ class Product_(Resource):
     @token_required
     def get(self):
         try:
-            que = request.args['kode_product']
-            p = Produk.query.filter_by(kode_produk=que).first()
-            return product_schema.dump(p),200
-        except:
-            p = Produk.query.all()
-            return products_schema.dump(p),200
+            # que = request.args['kode_product']
+            # p = Produk.query.filter_by(kode_produk=que).first()
+            # return product_schema.dump(p),200
+            p = Produk.get_dataJson()
+            return p
+        except Exception as e:
+            return {'msg':str(e)}
     @token_required
     def post(self):
         try:
@@ -28,19 +29,19 @@ class Product_(Resource):
             nama_produk = request.form['nama_produk']
             catatan = request.form['catatan']
             harga = request.form['harga']
+            kode_produk = f'{jenis_produk}/{u.username}/{len(nama_produk)}{len(catatan)}{len(harga)}'
             r_data = {
                 'nama_produk' : nama_produk,
                 'harga' : harga,
                 'catatan':catatan
             }
             
-            kode_produk = f'{jenis_produk}/{u.username}/{len(nama_produk)}{len(catatan)}{len(harga)}'
 
             data = json.loads(u.data)
             
             if 'dataProduct' not in data:
                 
-                data['dataProduct'] = [kode_produk]
+                data['dataProduct'] = r_data['kode_produk'] 
                 
             else:
                 if kode_produk in data['dataProduct']:
@@ -56,6 +57,7 @@ class Product_(Resource):
             return {'msg':'added !','data':data},200
         except Exception as e:
             return {'msg':str(e)},404
+    
 
     
 

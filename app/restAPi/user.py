@@ -2,32 +2,40 @@ from app import (
     app,
     Resource,
     request,
-    User,
+    User,Produk,
     check_password_hash,
     generate_password_hash,
     jwt,datetime,
     session,
     token_required,
-    users_schema,
-    user_schema,
     json,
     db,
     api,
-    make_response,jsonify
+    make_response,jsonify,
+    qData
 )
 import datetime
+from flask_restful import reqparse
+
+parser = reqparse.RequestParser()
+parser.add_argument('username',type=str,location='args',help='username Cannot be blank !')
+parser.add_argument('id',type=str,location='args',help='username Cannot be blank !')
+parser.add_argument('data',type=dict,location='get_json',help='data cannot is blank !')
+
 
 
 
 class Login(Resource):
     def get(self):
-        return {'msg':'anda harus login menggunakan method POST'},400
+        return {'msg':"gunakan method POST untuk login"},400
+        
     def post(self):
         username = request.form['username']
         password = request.form['password']
         if username and password:
-            u = User.get_by_name(username)
-            if u:
+            try:
+                u = User.query.filter_by(username=username).first()
+            
                 if check_password_hash(u.password,password):
                     token = jwt.encode(
                     {
@@ -42,23 +50,38 @@ class Login(Resource):
                 else:
                     return {'msg':'password anda salah ! '},404
                 
-            else :
+                
+            except Exception :
+                return {'msg':'not found username'},404
 
-                return {'msg':'username anda tidak ditemukan'},404
+                
         else:
             return {'msg':'gagal Login'},400
+        
 
 
 
 class User_(Resource): 
     @token_required
     def get(self):
-        q = User.get_all()
-        return users_schema.dump(q),200
+        args = parser.parse_args()
+
+        username = args['username']
+        if username == 'all':
+            q = User.get_dataJson()
+            return q,200
+    
+        try:
+            q = User.get_by_name(username=username)
+            return q,200
+        except Exception:
+            return {'msg':'username tidak ada !'},404
+        
+        
     def post(self):
-        username = request.form['username']
+        username = request.form['username'].replace(' ','').lower()
         password = request.form['password']
-        role = ''
+        role = request.form['role']
         data  = json.dumps({})
         pas_g = generate_password_hash(password)
         try :
@@ -69,48 +92,53 @@ class User_(Resource):
         except Exception as e:
             return {'msg':f'{e}','status':False},404
     def delete(self):
-        id = request.args['id']
-        u = User.get_by_id(id)
-        username = session.get('username')
-        if id :
-            try:
-                u = User.get_by_id(id)
-                u.delete()
-                if u.username == username:
-                    session.clear()
-                return {'msg':'succes deleted !','u':username},200
+        args = parser.parse_args()
+        username = args['username']
+        if username == 'all':
+            q = User.query.delete()
+            
+            db.session.commit()
+            return {'msg':'all deleted !'},200
+        try:
+            u = User.query.filter_by(username=username).first()
+            db.session.delete(u)
+            db.session.commit()
+            return {'msg':'success deleting !'},200
+        except Exception as e:
+            return {'msg':str(e)},400
 
-            except Exception as e:
-                return {'msg':'id anda tidak ditemukan !'},404
-        else:
-            return {'msg':'isi id anda'},400
+
 
 
 
 class UserData(Resource):
-    def get(self,id):
-        q = User.get_data(id)
-        return {'data':q},200
-    def post(self,id):
-        try:
-            q = User.query.filter_by(id=id).first()
-            data = json.loads(q.data)
-            nama_lengkap = request.form['nama_lengkap']
-            nip = request.form['nip']
-            alamat = request.form['alamat']
-            no_telp = request.form['no_telp']
-            data['dataPersonal'] = {
-                'nama_lengkap':nama_lengkap,
-                'nip':nip,
-                'alamat':alamat,
-                'no_telp':no_telp,
-            }
-            q.data = json.dumps(data)
-            db.session.commit()
-            return {'msg':'success !'},200
-        except Exception as e:
-            return {'msg':str(e)},400
-@app.route('/api/logout')
+    def get(self):
+        args = parser.parse_args()
+        username = args['username']
+        q = User.get_by_name(username)
+        return q,200
+    def post(self):
+        args = parser.parse_args()
+        data = args['data']
+        username = args['username']
+        obj = qData(username=username)
+        s = obj.postData(data=data,query='dataPersonal')        
+        return s,s['http_code']
+    def put(self):
+        args = parser.parse_args()
+        username = args['username']
+        data =  args['data']
+        obj = qData(username=username)
+        s = obj.putData(data=data,query='dataPersonal')
+        return s,s['http_code']
+    
+                
+                
+                
+            
+
+
+@app.route('/api/logout',methods=['GET','POST'])
 def logout():
     session.clear()
     return make_response(jsonify({
@@ -119,5 +147,5 @@ def logout():
 
 # API Route
 api.add_resource(Login,'/api/login') 
-api.add_resource(User_,'/api/user')
-api.add_resource(UserData,'/api/user/data/<id>')
+api.add_resource(User_,'/api/user/')
+api.add_resource(UserData,'/api/user/data/')

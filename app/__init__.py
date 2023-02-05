@@ -1,7 +1,7 @@
 from flask import Flask,request,jsonify,make_response,redirect,session
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api,Resource
-from flask_marshmallow import Marshmallow
+
 from flask_migrate import Migrate
 from config import Config
 import jwt
@@ -15,7 +15,7 @@ app = Flask(__name__)
 app.config.from_object(Config)
 db = SQLAlchemy(app)
 api = Api(app)
-ma = Marshmallow(app)
+
 
 
 migrate = Migrate(app,db)
