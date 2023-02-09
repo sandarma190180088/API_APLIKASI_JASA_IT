@@ -42,15 +42,8 @@ class qData():
                 else:
                     pass # break cape :(
 
-                    
-
-
             else:
-
-
-            
+                pass            
         except Exception as e:
             return {'msg':str(e),'http_code':400}
-            
-                
-            
+       

@@ -3,23 +3,20 @@ from app import (
     api,
     request,
     token_required,
-    
     json,
     db,session,
     Resource,User
 )
 
+
+
 class Product_(Resource):
     @token_required
     def get(self):
-        try:
-            # que = request.args['kode_product']
-            # p = Produk.query.filter_by(kode_produk=que).first()
-            # return product_schema.dump(p),200
-            p = Produk.get_dataJson()
-            return p
-        except Exception as e:
-            return {'msg':str(e)}
+        q = Produk.get_dataJson()
+        return q,200
+        # return "s",200
+        
     @token_required
     def post(self):
         try:

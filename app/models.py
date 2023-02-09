@@ -67,6 +67,7 @@ class Produk(db.Model):
     __tablename__ = 'tb_produk'
     id = db.Column(db.Integer,primary_key=True)
     kode_produk = db.Column(db.String,nullable=False,unique=True)
+    created_by = db.Column(db.String,nullable=False)
     # Jenis Produk ada 3 yaitu (MD,WD,UI/UX/)
     jenis_produk = db.Column(db.String,nullable=False)
     data  = db.Column(db.Text)

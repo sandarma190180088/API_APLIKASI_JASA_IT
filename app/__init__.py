@@ -16,7 +16,9 @@ app.config.from_object(Config)
 db = SQLAlchemy(app)
 api = Api(app)
 
-
+@app.route('/')
+def home():
+    return "Selamat datang di website kami :)"
 
 migrate = Migrate(app,db)
 
