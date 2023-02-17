@@ -15,7 +15,6 @@ class Product_(Resource):
     def get(self):
         q = Produk.get_dataJson()
         return q,200
-        # return "s",200
         
     @token_required
     def post(self):
@@ -32,8 +31,6 @@ class Product_(Resource):
                 'harga' : harga,
                 'catatan':catatan
             }
-            
-
             data = json.loads(u.data)
             
             if 'dataProduct' not in data:

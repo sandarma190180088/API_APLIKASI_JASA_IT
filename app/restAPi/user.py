@@ -32,29 +32,22 @@ class Login(Resource):
         username = request.form['username']
         password = request.form['password']
         if username and password:
-            try:
-                u = User.query.filter_by(username=username).first()
+            login = User.login(username=username,password=password)
             
-                if check_password_hash(u.password,password):
-                    token = jwt.encode(
-                    {
-                        "username":username,
-                        "exp":datetime.datetime.utcnow()+datetime.timedelta(days=1)
-                    },app.config['SECRET_KEY'],algorithm="HS256"
+            if login['status']:
+                token = jwt.encode(
+                {
+                    "username":username,
+                    "exp":datetime.datetime.utcnow()+datetime.timedelta(days=1)
+                },app.config['SECRET_KEY'],algorithm="HS256"
 
-                    )
-                    session.clear()
-                    session['token']= token
-                    session['username'] = username
-                    return {"msg":"berhasil Login",'token':token},200
-                else:
-                    return {'msg':'password anda salah ! '},404
-                
-                
-            except Exception :
-                return {'msg':'not found username'},404
-
-                
+                )
+                session.clear()
+                session['token']= token
+                session['username'] = username
+                return {"msg":"berhasil Login",'token':token},200
+            else:
+                return {'msg':login['msg']},404
         else:
             return {'msg':'gagal Login'},400
         
@@ -74,8 +67,7 @@ class User_(Resource):
             return q,200
         except Exception:
             return {'msg':'username tidak ada !'},404
-        
-        
+
     def post(self):
         username = request.form['username'].replace(' ','').lower()
         password = request.form['password']

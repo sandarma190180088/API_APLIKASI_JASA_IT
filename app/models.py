@@ -1,4 +1,4 @@
-from app import db
+from app import db,check_password_hash
 from datetime import datetime
 import json
 
@@ -13,6 +13,17 @@ class User(db.Model):
     data = db.Column(db.Text)
     def __repr__(self) -> str:
         return f'<username : {self.username}>'
+
+    @classmethod
+    def login(cls,username,password):
+        try:
+            q = cls.query.filter_by(username=username).first()
+            if check_password_hash(q.password,password):
+                return {'status':True,'msg':None}
+            else:
+                return {'status':False,'msg':'password anda salah !'}
+        except:
+            return {'status':False,'msg':'username anda tidak ditemukan !'}
 
     @classmethod
     def get_by_name(cls,username):
