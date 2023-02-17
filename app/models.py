@@ -19,7 +19,7 @@ class User(db.Model):
         try:
             q = cls.query.filter_by(username=username).first()
             if check_password_hash(q.password,password):
-                return {'status':True,'msg':None}
+                return {'status':True,'msg':None,'role':q.role}
             else:
                 return {'status':False,'msg':'password anda salah !'}
         except:
@@ -114,11 +114,27 @@ class Transaksi(db.Model):
     id = db.Column(db.Integer,primary_key=True)
     resi = db.Column(db.String,nullable=False)
     status = db.Column(db.String,nullable=False)
+    created_by = db.Column(db.String,nullable=False)
     created_at = db.Column(db.DateTime,default=datetime.now())
     data = db.Column(db.Text,nullable=False)
 
     def __repr__(self) -> str:
         return self.resi
+    
+    @classmethod
+    def get_dataJsonByResi(cls,resi):
+        q = cls.query.filter_by(resi=resi).first()
+        if q:
+
+            v = {
+                'resi':q.resi,
+                'status':q.status,
+                'data':json.loads(q.data)
+            }
+        else:
+            v = {'data':None}
+        
+        return v
 
 
 

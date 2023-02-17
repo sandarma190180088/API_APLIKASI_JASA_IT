@@ -1,7 +1,6 @@
 from flask import Flask,request,jsonify,make_response,redirect,session
 from flask_sqlalchemy import SQLAlchemy
-from flask_restful import Api,Resource
-
+from flask_restful import Api,Resource,reqparse
 from flask_migrate import Migrate
 from config import Config
 import jwt
@@ -19,7 +18,11 @@ api = Api(app)
 @app.route('/')
 def home():
     return "Selamat datang di website kami :)"
-
+@app.route('/session')
+def view_session():
+    username = session.get('username')
+    
+    return str(session.items())
 migrate = Migrate(app,db)
 
 def token_required(func=None):

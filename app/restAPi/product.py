@@ -5,10 +5,11 @@ from app import (
     token_required,
     json,
     db,session,
-    Resource,User
+    Resource,User,reqparse
 )
 
-
+parser = reqparse.RequestParser()
+parser.add_argument('dataProduct',location='json',type=dict)
 
 class Product_(Resource):
     @token_required
@@ -18,40 +19,67 @@ class Product_(Resource):
         
     @token_required
     def post(self):
+        args = parser.parse_args()
         try:
             username= session.get('username')
-            u = User.query.filter_by(username=username).first()
-            jenis_produk = request.form['jenis_produk']
-            nama_produk = request.form['nama_produk']
-            catatan = request.form['catatan']
-            harga = request.form['harga']
-            kode_produk = f'{jenis_produk}/{u.username}/{len(nama_produk)}{len(catatan)}{len(harga)}'
-            r_data = {
-                'nama_produk' : nama_produk,
-                'harga' : harga,
-                'catatan':catatan
-            }
-            data = json.loads(u.data)
+            role = session.get('role')
+            if role == '':
+                return {'msg':'anda tidak bisa menambahkan produk <role : {}>'.format(role)},400
+            dataProduct = args['dataProduct']
+            kode_produk = f'{dataProduct["jenis_produk"]}/{username}/{len(dataProduct["nama_produk"])}{len(dataProduct["catatan"])}{len(dataProduct["harga"])}'
+            created_by = username
+
+            data = json.dumps(dataProduct)
             
-            if 'dataProduct' not in data:
-                
-                data['dataProduct'] = r_data['kode_produk'] 
-                
-            else:
-                if kode_produk in data['dataProduct']:
-                    return {'msg':'data produk anda sudah ada'},400
-                else:
-                    data['dataProduct'].append(kode_produk)
-            data = json.dumps(data)
-            u.data = data
-            q = Produk(kode_produk=kode_produk,jenis_produk=jenis_produk,data=json.dumps(r_data))
+            q = Produk(kode_produk=kode_produk,created_by=created_by,jenis_produk=dataProduct['jenis_produk'],data=data)
             db.session.add(q)
             db.session.commit()
 
-            return {'msg':'added !','data':data},200
+            return {'msg':'success add Product ! ,created by : <username:{}>'.format(username)},200
         except Exception as e:
             return {'msg':str(e)},404
-    
+    @token_required
+    def put(self):
+        args = parser.parse_args()
+        kode_product = request.args['kode_product']
+        username = session.get('username')
+        role = session.get('role')
+        if role == '':
+            return {'msg':'anda tidak bisa menambahkan produk <role : {}>'.format(role)},400
+        try:
+            p = Produk.query.filter_by(kode_produk=kode_product).first()
+            if p.created_by == username:
+
+                dataProduct = args['dataProduct']
+                p.data = json.dumps(dataProduct)
+                db.session.commit()
+                return {'msg':'success update !'},200
+                
+            else:
+                return {'msg':'auth denied !'},400
+        except Exception as e:
+            return {'msg':str(e)},400
+        
+    # Belum Selesai 
+    def delete(self):
+        username = session.get('username')
+        kode_produk = request.args['kode_product']
+        try:
+            if kode_produk == 'all':
+                p = Produk.query.filter_by(created_by=username).all()
+                db.session.delete(p)
+                db.session.commit()
+            else:
+                p = Produk.query.filter_by(kode_produk=kode_produk).first()
+                db.session.delete(p)
+                db.session.commit()
+            return {'msg':'success delete'},200
+        except Exception as e:
+            return {'msg':str(e)},404
+
+
+
+        
 
     
 

@@ -12,10 +12,9 @@ from app import (
     db,
     api,
     make_response,jsonify,
-    qData
+    qData,reqparse
 )
 import datetime
-from flask_restful import reqparse
 
 parser = reqparse.RequestParser()
 
@@ -29,8 +28,11 @@ class Login(Resource):
         return {'msg':"gunakan method POST untuk login"},400
         
     def post(self):
+        if session.get('username'):
+            return {'msg':'anda sudah login <username:{}>'.format(session.get('username'))},400
         username = request.form['username']
         password = request.form['password']
+        
         if username and password:
             login = User.login(username=username,password=password)
             
@@ -42,9 +44,10 @@ class Login(Resource):
                 },app.config['SECRET_KEY'],algorithm="HS256"
 
                 )
-                session.clear()
+                
                 session['token']= token
                 session['username'] = username
+                session['role'] = login['role']
                 return {"msg":"berhasil Login",'token':token},200
             else:
                 return {'msg':login['msg']},404
